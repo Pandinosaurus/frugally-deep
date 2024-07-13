@@ -2,8 +2,9 @@
 """Save application models mentioned in Keras documentation
 """
 
-import convert_model
 import tensorflow as tf
+
+import convert_model
 
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"
@@ -14,10 +15,10 @@ __email__ = "editgym@gmail.com"
 
 def save_model(file_name_base, model):
     """Save and convert Keras model"""
-    keras_file = f'{file_name_base}.h5'
+    keras_file = f'{file_name_base}.keras'
     fdeep_file = f'{file_name_base}.json'
     print(f'Saving {keras_file}')
-    model.save(keras_file, include_optimizer=False)
+    model.save(keras_file)
     print(f'Converting {keras_file} to {fdeep_file}.')
     convert_model.convert(keras_file, fdeep_file)
     print(f'Conversion of model {keras_file} to {fdeep_file} done.')
@@ -26,10 +27,30 @@ def save_model(file_name_base, model):
 def main():
     """Save famous example models in Keras-h5 and fdeep-json format."""
     print('Saving application examples')
+    # save_model('convnextbase', tf.keras.applications.convnext.ConvNeXtBase())  # custom object LayerScale
+    # save_model('convnextlarge', tf.keras.applications.convnext.ConvNeXtLarge())  # custom object LayerScale
+    # save_model('convnextsmall', tf.keras.applications.convnext.ConvNeXtSmall())  # custom object LayerScale
+    # save_model('convnexttiny', tf.keras.applications.convnext.ConvNeXtTiny())  # custom object LayerScale
+    # save_model('convnextxlarge', tf.keras.applications.convnext.ConvNeXtXLarge())  # custom object LayerScale
     save_model('densenet121', tf.keras.applications.densenet.DenseNet121())
     save_model('densenet169', tf.keras.applications.densenet.DenseNet169())
     save_model('densenet201', tf.keras.applications.densenet.DenseNet201())
-    # save_model('inceptionresnetv2', tf.keras.applications.inception_resnet_v2.InceptionResNetV2(input_shape=(299, 299, 3)))  # lambda
+    save_model('efficientnetb0', tf.keras.applications.efficientnet.EfficientNetB0(weights=None))
+    save_model('efficientnetb1', tf.keras.applications.efficientnet.EfficientNetB1(weights=None))
+    save_model('efficientnetb2', tf.keras.applications.efficientnet.EfficientNetB2(weights=None))
+    save_model('efficientnetb3', tf.keras.applications.efficientnet.EfficientNetB3(weights=None))
+    save_model('efficientnetb4', tf.keras.applications.efficientnet.EfficientNetB4(weights=None))
+    save_model('efficientnetb5', tf.keras.applications.efficientnet.EfficientNetB5(weights=None))
+    save_model('efficientnetb6', tf.keras.applications.efficientnet.EfficientNetB6(weights=None))
+    save_model('efficientnetb7', tf.keras.applications.efficientnet.EfficientNetB7(weights=None))
+    save_model('efficientnetv2b0', tf.keras.applications.efficientnet_v2.EfficientNetV2B0())
+    save_model('efficientnetv2b1', tf.keras.applications.efficientnet_v2.EfficientNetV2B1())
+    save_model('efficientnetv2b2', tf.keras.applications.efficientnet_v2.EfficientNetV2B2())
+    save_model('efficientnetv2b3', tf.keras.applications.efficientnet_v2.EfficientNetV2B3())
+    save_model('efficientnetv2l', tf.keras.applications.efficientnet_v2.EfficientNetV2L())
+    save_model('efficientnetv2m', tf.keras.applications.efficientnet_v2.EfficientNetV2M())
+    save_model('efficientnetv2s', tf.keras.applications.efficientnet_v2.EfficientNetV2S())
+    # save_model('inceptionresnetv2', tf.keras.applications.inception_resnet_v2.InceptionResNetV2(input_shape=(299, 299, 3)))  # CustomScaleLayer
     save_model('inceptionv3', tf.keras.applications.inception_v3.InceptionV3(input_shape=(299, 299, 3)))
     save_model('mobilenet', tf.keras.applications.mobilenet.MobileNet())
     save_model('mobilenetv2', tf.keras.applications.mobilenet_v2.MobileNetV2())

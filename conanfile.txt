@@ -1,8 +1,8 @@
 [requires]
 eigen/3.4.0
-functionalplus/v0.2.18-p0
-nlohmann_json/3.10.5
+functionalplus/v0.2.24
+nlohmann_json/3.11.3
 
 [generators]
-cmake_find_package
-cmake_paths
+CMakeToolchain
+CMakeDeps
