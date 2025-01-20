@@ -15,7 +15,6 @@ Table of contents
 
 * [Introduction](#introduction)
 * [Usage](#usage)
-* [Performance](#performance)
 * [Requirements and Installation](#requirements-and-installation)
 * [FAQ](#faq)
 
@@ -35,30 +34,30 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 * works out-of-the-box also when compiled into a 32-bit executable. (Of course, 64 bit is fine too.)
 * avoids temporarily allocating (potentially large chunks of) additional RAM during convolutions (by not materializing the im2col input matrix).
 * utterly ignores even the most powerful GPU in your system and uses only one CPU core per prediction. ;-)
-* but is quite fast on one CPU core [compared to TensorFlow](#performance), and you can run multiple predictions in parallel, thus utilizing as many CPUs as you like to improve the overall prediction throughput of your application/pipeline.
+* but is quite fast on one CPU core, and you can run multiple predictions in parallel, thus utilizing as many CPUs as you like to improve the overall prediction throughput of your application/pipeline.
 
 
 ### Supported layer types
 
-Layer types typically used in image recognition/generation are supported, making many popular model architectures possible (see [Performance section](#performance)).
-
-* `Add`, `Concatenate`, `Subtract`, `Multiply`, `Average`, `Maximum`
-* `AveragePooling1D/2D`, `GlobalAveragePooling1D/2D`
-* `Bidirectional`, `TimeDistributed`, `GRU`, `LSTM`, `CuDNNGRU`, `CuDNNLSTM`
+* `Add`, `Concatenate`, `Subtract`, `Multiply`, `Average`, `Maximum`, `Minimum`, `Dot`
+* `AveragePooling1D/2D/3D`, `GlobalAveragePooling1D/2D/3D`
+* `TimeDistributed`
 * `Conv1D/2D`, `SeparableConv2D`, `DepthwiseConv2D`
-* `Cropping1D/2D`, `ZeroPadding1D/2D`
+* `Cropping1D/2D/3D`, `ZeroPadding1D/2D/3D`, `CenterCrop`
 * `BatchNormalization`, `Dense`, `Flatten`, `Normalization`
 * `Dropout`, `AlphaDropout`, `GaussianDropout`, `GaussianNoise`
 * `SpatialDropout1D`, `SpatialDropout2D`, `SpatialDropout3D`
+* `ActivityRegularization`, `LayerNormalization`, `UnitNormalization`
 * `RandomContrast`, `RandomFlip`, `RandomHeight`
 * `RandomRotation`, `RandomTranslation`, `RandomWidth`, `RandomZoom`
-* `MaxPooling1D/2D`, `GlobalMaxPooling1D/2D`
+* `MaxPooling1D/2D/3D`, `GlobalMaxPooling1D/2D/3D`
 * `ELU`, `LeakyReLU`, `ReLU`, `SeLU`, `PReLU`
 * `Sigmoid`, `Softmax`, `Softplus`, `Tanh`
-* `Exponential`, `GELU`, `Softsign`
-* `UpSampling1D/2D`
+* `Exponential`, `GELU`, `Softsign`, `Rescaling`
+* `UpSampling1D/2D`, `Resizing`
 * `Reshape`, `Permute`, `RepeatVector`
-* `Embedding`
+* `Embedding`, `CategoryEncoding`
+* `Attention`, `AdditiveAttention`, `MultiHeadAttention`
 
 
 ### Also supported
@@ -73,33 +72,22 @@ Layer types typically used in image recognition/generation are supported, making
 
 ### Currently not supported are the following:
 
-`ActivityRegularization`,
-`AveragePooling3D`,
 `Conv2DTranspose` ([why](FAQ.md#why-are-conv2dtranspose-layers-not-supported)),
-`Conv3D`,
-`ConvLSTM2D`,
-`Cropping3D`,
-`Dot`,
-`GRUCell`,
 `Lambda` ([why](FAQ.md#why-are-lambda-layers-not-supported)),
-`LocallyConnected1D`,
-`LocallyConnected2D`,
-`LSTMCell`,
-`Masking`,
-`MaxPooling3D`,
-`RepeatVector`,
-`RNN`,
-`SimpleRNN`,
-`SimpleRNNCell`,
-`StackedRNNCells`,
-`ThresholdedReLU`,
-`Upsampling3D`,
-`temporal` models
+`Conv3D`, `ConvLSTM1D`, `ConvLSTM2D`, `Discretization`,
+`GRUCell`, `Hashing`,
+`IntegerLookup`,
+`LocallyConnected1D`, `LocallyConnected2D`,
+`LSTMCell`, `Masking`,
+`RepeatVector`, `RNN`, `SimpleRNN`,
+`SimpleRNNCell`, `StackedRNNCells`, `StringLookup`, `TextVectorization`,
+`Bidirectional`, `GRU`, `LSTM`, `CuDNNGRU`, `CuDNNLSTM`,
+`ThresholdedReLU`, `Upsampling3D`, `temporal` models
 
 Usage
 -----
 
-1) Use Keras/Python to build (`model.compile(...)`), train (`model.fit(...)`) and test (`model.evaluate(...)`) your model as usual. Then save it to a single HDF5 file using `model.save('....h5', include_optimizer=False)`. The `image_data_format` in your model must be `channels_last`, which is the default when using the TensorFlow backend. Models created with a different `image_data_format` and other backends are not supported.
+1) Use Keras/Python to build (`model.compile(...)`), train (`model.fit(...)`) and test (`model.evaluate(...)`) your model as usual. Then save it to a single file using `model.save('....keras')`. The `image_data_format` in your model must be `channels_last`, which is the default when using the TensorFlow backend. Models created with a different `image_data_format` and other backends are not supported.
 
 2) Now convert it to the frugally-deep file format with `keras_export/convert_model.py`
 
@@ -110,8 +98,8 @@ The following minimal example shows the full workflow:
 ```python
 # create_model.py
 import numpy as np
-from tensorflow.keras.layers import Input, Dense
-from tensorflow.keras.models import Model
+from keras.layers import Input, Dense
+from keras.models import Model
 
 inputs = Input(shape=(4,))
 x = Dense(5, activation='relu')(inputs)
@@ -123,11 +111,11 @@ model.fit(
     np.asarray([[1, 2, 3, 4], [2, 3, 4, 5]]),
     np.asarray([[1, 0, 0], [0, 0, 1]]), epochs=10)
 
-model.save('keras_model.h5', include_optimizer=False)
+model.save('keras_model.keras')
 ```
 
 ```bash
-python3 keras_export/convert_model.py keras_model.h5 fdeep_model.json
+python3 keras_export/convert_model.py keras_model.keras fdeep_model.json
 ```
 
 ```cpp
@@ -147,38 +135,15 @@ When using `convert_model.py` a test case (input and corresponding output values
 
 For more integration examples please have a look at the [FAQ](FAQ.md).
 
-Performance
------------
-
-Below you can find the average durations of multiple consecutive forward passes for some popular models ran on a **single core** of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep and TensorFlow were compiled (GCC ver. 7.1) with `g++ -O3 -march=native`. The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to **disable the GPU** and to only allow usage of one CPU.
-(see used [`Dockerfile`](test/Dockerfile))
-
-| Model             | Keras + TF | frugally-deep |
-| ----------------- | ----------:| -------------:|
-| `DenseNet121`     |     0.12 s |        0.28 s |
-| `DenseNet169`     |     0.14 s |        0.36 s |
-| `DenseNet201`     |     0.16 s |        0.49 s |
-| `InceptionV3`     |     0.17 s |        0.36 s |
-| `MobileNet`       |     0.05 s |        0.07 s |
-| `MobileNetV2`     |     0.05 s |        0.07 s |
-| `NASNetLarge`     |     0.85 s |        2.45 s |
-| `NASNetMobile`    |     0.09 s |        0.13 s |
-| `ResNet101`       |     0.23 s |        0.52 s |
-| `ResNet101V2`     |     0.21 s |        0.49 s |
-| `ResNet152`       |     0.32 s |        0.78 s |
-| `ResNet152V2`     |     0.30 s |        0.71 s |
-| `ResNet50`        |     0.14 s |        0.31 s |
-| `ResNet50V2`      |     0.12 s |        0.25 s |
-| `VGG16`           |     0.41 s |        0.53 s |
-| `VGG19`           |     0.50 s |        0.66 s |
-| `Xception`        |     0.25 s |        0.65 s |
-
 Requirements and Installation
 -----------------------------
 
 - A **C++14**-compatible compiler: Compilers from these versions on are fine: GCC 4.9, Clang 3.7 (libc++ 3.7) and Visual C++ 2015
-- Python 3.7 or higher
-- TensorFlow and Keras 2.8.0 (This is the tested version, but somewhat older ones might work too.)
+- Python 3.9 or higher
+- TensorFlow 2.18.0
+- Keras 3.8.0
+
+(These are the tested versions, but somewhat older ones might work too.)
 
 Guides for different ways to install frugally-deep can be found in [`INSTALL.md`](INSTALL.md).
 
@@ -188,9 +153,9 @@ FAQ
 See [`FAQ.md`](FAQ.md)
 
 Disclaimer
-
 ----------
-The API of this library still might change in the future. If you have any suggestions, find errors or want to give general feedback/criticism, I'd [love to hear from you](issues). Of course, [contributions](pulls) are also very welcome.
+
+The API of this library still might change in the future. If you have any suggestions, find errors, or want to give general feedback/criticism, I'd [love to hear from you](issues). Of course, [contributions](pulls) are also very welcome.
 
 License
 -------
