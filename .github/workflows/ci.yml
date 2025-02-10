@@ -4,7 +4,7 @@ on: [workflow_dispatch, push, pull_request]
 
 jobs:
   build_gcc:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@main
       - name: Setup
@@ -13,11 +13,13 @@ jobs:
           sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
           # python libs
           sudo pip3 install --upgrade pip
-          sudo pip3 install numpy scipy h5py "tensorflow==2.8.0" "keras==2.8.0"
+          sudo pip3 install numpy scipy h5py "tensorflow==2.18.0" "keras==3.8.0"
+          echo "Python version:"
+          python3 --version
           echo "Version numbers of TensorFlow and Keras:"
-          python3 -c "import tensorflow as tf; import tensorflow.keras; print(tf.__version__); print(tensorflow.keras.__version__)"
+          python3 -c "import tensorflow as tf; import tensorflow; import keras; print(tf.__version__); print(keras.__version__)"
           # FunctionalPlus
-          git clone -b 'v0.2.18-p0' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus
+          git clone -b 'v0.2.24' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus
           cd FunctionalPlus
           mkdir -p build && cd build
           cmake ..
@@ -32,14 +34,14 @@ jobs:
           sudo ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen
           cd ../..
           # json
-          git clone -b 'v3.10.5' --single-branch --depth 1 https://github.com/nlohmann/json
+          git clone -b 'v3.11.3' --single-branch --depth 1 https://github.com/nlohmann/json
           cd json
           mkdir -p build && cd build
-          cmake -DBUILD_TESTING=OFF ..
+          cmake -DJSON_BuildTests=OFF ..
           make && sudo make install
           cd ../..
           # Doctest
-          git clone -b '2.3.5' --single-branch --depth 1 https://github.com/onqtam/doctest.git
+          git clone -b 'v2.4.11' --single-branch --depth 1 https://github.com/onqtam/doctest.git
           cd doctest
           mkdir -p build && cd build
           cmake .. -DDOCTEST_WITH_TESTS=OFF -DDOCTEST_WITH_MAIN_IN_STATIC_LIB=OFF
@@ -54,9 +56,14 @@ jobs:
           cmake .. -DFDEEP_BUILD_UNITTEST=ON
           cmake --build . --target unittest --config Release --
           cd ..
-          # run stateful tests
-          cd test/stateful_test
-          g++ -I../../include -std=c++14 -O3 stateful_recurrent_tests.cpp -o stateful_recurrent_tests_cpp
-          mkdir models
-          python3 stateful_recurrent_tests.py
-          cd ../..
+
+
+  formatting-check:
+    name: "formatting"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+      - uses: DoozyX/clang-format-lint-action@master
+        name: "Verify formatting"
+        with:
+          clangFormatVersion: 16

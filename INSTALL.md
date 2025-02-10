@@ -7,7 +7,7 @@ Installation
 You can install frugally-deep using cmake as shown below, or (if you prefer) download the [code](https://github.com/Dobiasd/frugally-deep/archive/master.zip) (and the [code](https://github.com/Dobiasd/FunctionalPlus/archive/master.zip) of [FunctionalPlus](https://github.com/Dobiasd/FunctionalPlus)), extract it and tell your compiler to use the `include` directories.
 
 ```
-git clone -b 'v0.2.18-p0' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus
+git clone -b 'v0.2.24' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus
 cd FunctionalPlus
 mkdir -p build && cd build
 cmake ..
@@ -22,10 +22,10 @@ make && sudo make install
 sudo ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen
 cd ../..
 
-git clone -b 'v3.10.5' --single-branch --depth 1 https://github.com/nlohmann/json
+git clone -b 'v3.11.3' --single-branch --depth 1 https://github.com/nlohmann/json
 cd json
 mkdir -p build && cd build
-cmake -DBUILD_TESTING=OFF ..
+cmake -DJSON_BuildTests=OFF ..
 make && sudo make install
 cd ../..
 
@@ -41,7 +41,7 @@ Building the tests (optional) requires [doctest](https://github.com/onqtam/docte
 
 ```
 # install doctest
-git clone -b '2.3.5' --single-branch --depth 1 https://github.com/onqtam/doctest.git
+git clone -b 'v2.4.11' --single-branch --depth 1 https://github.com/onqtam/doctest.git
 cd doctest
 mkdir -p build && cd build
 cmake .. -DDOCTEST_WITH_TESTS=OFF -DDOCTEST_WITH_MAIN_IN_STATIC_LIB=OFF
@@ -55,7 +55,7 @@ cmake -DFDEEP_BUILD_UNITTEST=ON ..
 make unittest
 cd ../..
 ```
-
+The Unit Tests require Python3, please make sure Python3 has been installed correctly.
 
 ### Installation using [Conan C/C++ package manager](https://conan.io)
 
@@ -63,7 +63,7 @@ Just add a *conanfile.txt* with frugally-deep as a requirement and chose the gen
 
 ```
 [requires]
-frugally-deep/v0.15.16-p0@dobiasd/stable
+frugally-deep/v0.16.3@dobiasd/stable
 
 [generators]
 cmake

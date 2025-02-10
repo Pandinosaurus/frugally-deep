@@ -6,7 +6,7 @@ list(APPEND CMAKE_MODULE_PATH "${FDEEP_TOP_DIR}/cmake")
 
 include(cmake/hunter.cmake) # default off
 
-project(frugally-deep VERSION 0.15.16)
+project(frugally-deep VERSION 0.16.3)
 
 message(STATUS "===( ${PROJECT_NAME} ${PROJECT_VERSION} )===")
 
@@ -19,6 +19,7 @@ if(NOT FDEEP_USE_TOOLCHAIN)
 endif()
 
 add_library(fdeep INTERFACE)
+add_library(${PROJECT_NAME}::fdeep ALIAS fdeep)
 target_include_directories(fdeep INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
   )
@@ -50,7 +51,7 @@ target_link_libraries(fdeep INTERFACE nlohmann_json)
 
 if(FDEEP_BUILD_UNITTEST)
     enable_testing()
-    subdirs(test)
+    add_subdirectory(test)
 endif()
 
 # pkgconfig installation:
